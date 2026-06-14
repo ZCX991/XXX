@@ -214,7 +214,13 @@ html,body{width:100%;height:100%;overflow:hidden;background:#060a1f;font-family:
 .dot{width:6px;height:6px;border-radius:50%;background:rgba(255,245,238,.18);transition:all .5s cubic-bezier(.4,0,.2,1)}
 .dot.active{background:rgba(212,175,55,.55);width:20px;border-radius:4px}
 
-/* ── Responsive ── */
+/* ── Music Player ── */
+#music-btn{position:fixed;bottom:clamp(12px,2.5vh,24px);left:clamp(12px,2.5vw,24px);z-index:40;width:clamp(32px,7vw,44px);height:clamp(32px,7vw,44px);border-radius:50%;border:1px solid rgba(255,209,220,.1);background:transparent;color:rgba(255,245,238,.25);font-size:clamp(1rem,2.4vw,1.4rem);cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .6s ease;backdrop-filter:blur(4px);-webkit-tap-highlight-color:transparent;touch-action:manipulation}
+#music-btn:hover{color:rgba(255,245,238,.4);border-color:rgba(255,209,220,.2)}
+#music-btn.active{color:rgba(212,175,55,.5);border-color:rgba(212,175,55,.2);box-shadow:0 0 12px rgba(212,175,55,.08)}
+#music-btn.playing{animation:musicPulse 3s ease-in-out infinite}
+@keyframes musicPulse{0%,100%{box-shadow:0 0 8px rgba(212,175,55,.05)}50%{box-shadow:0 0 18px rgba(212,175,55,.12)}}
+#bgm{display:none}
 @media(max-width:480px){
   .section{padding:3vw 4vw}
   .letter{width:88vw;padding:0}
@@ -438,6 +444,10 @@ html,body{width:100%;height:100%;overflow:hidden;background:#060a1f;font-family:
     <span class="wr-f" data-flw="4"></span>
   </div>
 </div>
+
+<!-- Music control -->
+<button id="music-btn">♪</button>
+<audio id="bgm" src="bgm.mp3" loop preload="auto"></audio>
 
 <script>
 (function(){
@@ -1307,6 +1317,43 @@ starHollow.addEventListener('click', function(){
     replyConfirm.classList.add('show');
   }, 400);
 });
+
+/* ── BGM Player ── */
+const musicBtn = $('music-btn');
+const bgmAudio = $('bgm');
+bgmAudio.volume = 0.15;
+
+musicBtn.addEventListener('click', function(){
+  if(bgmAudio.paused){
+    bgmAudio.play();
+    musicBtn.classList.add('playing', 'active');
+    musicBtn.textContent = '♫';
+  } else {
+    bgmAudio.pause();
+    musicBtn.classList.remove('playing', 'active');
+    musicBtn.textContent = '♪';
+  }
+});
+
+// Auto-play immediately on page load
+function autoPlayBGM(){
+  bgmAudio.play().then(() => {
+    musicBtn.classList.add('playing', 'active');
+    musicBtn.textContent = '♫';
+  }).catch(() => {
+    // Browser blocked — play on first touch instead
+    const playOnTouch = () => {
+      bgmAudio.play();
+      musicBtn.classList.add('playing', 'active');
+      musicBtn.textContent = '♫';
+      document.removeEventListener('pointerdown', playOnTouch);
+      document.removeEventListener('touchstart', playOnTouch);
+    };
+    document.addEventListener('pointerdown', playOnTouch, {once: true});
+    document.addEventListener('touchstart', playOnTouch, {once: true, passive: true});
+  });
+}
+autoPlayBGM();
 
 /* ── Easter egg: flower collection ── */
 
